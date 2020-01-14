@@ -201,9 +201,6 @@ if ($RoleAssignment.RoleDefinitionName -eq "Owner" -or $RoleAssignment.RoleDefin
 		Write-Output "ResourceGroup $ResourcegroupName created suceessfully"
 	}
 
-	$RDBrokerURL = "https://rdbroker.wvd.microsoft.com"
-	$ScriptRepoLocation = "https://raw.githubusercontent.com/Azure/RDS-Templates/ptg-wvdautoscaling-automation/wvd-templates/wvd-scaling-script/wvdscaling-automation"
-
 	#Creating Azure logic app to schedule job
 	foreach ($HPName in $HostpoolNames) {
 

@@ -671,10 +671,12 @@ if ($LogAnalyticsWorkspaceId -and $LogAnalyticsPrimaryKey)
 						$IsSessionHostNoHeartbeat = $false
 						while (!$IsSessionHostNoHeartbeat) {
 							$SessionHostInfo = Get-RdsSessionHost -TenantName $TenantName -HostPoolName $HostpoolName -Name $SessionHostName
-							if ($SessionHostInfo.UpdateState -eq "Succeeded" -and $SessionHostInfo.AllowNewSession -eq $false -and $SessionHostInfo.Status -eq "NoHeartbeat") {
+							if ($SessionHostInfo.UpdateState -eq "Succeeded" -and $SessionHostInfo.Status -eq "NoHeartbeat") {
 								$IsSessionHostNoHeartbeat = $true
-								# Ensure the Azure VMs that are off have allow new connections mode set to True
+                                # Ensure the Azure VMs that are off have allow new connections mode set to True
+                                if($SessionHostInfo.AllowNewSession -eq $false){ 
 								Check-ForAllowNewConnections -TenantName $TenantName -HostPoolName $HostpoolName -SessionHostName $SessionHostName
+                                }
 							}
 						}
 						$RoleSize = Get-AzVMSize -Location $RoleInstance.Location | Where-Object { $_.Name -eq $RoleInstance.HardwareProfile.VmSize }
@@ -1260,7 +1262,9 @@ else {
 							if ($SessionHostInfo.UpdateState -eq "Succeeded" -and $SessionHostInfo.AllowNewSession -eq $false -and $SessionHostInfo.Status -eq "NoHeartbeat") {
 								$IsSessionHostNoHeartbeat = $true
 								# Ensure the Azure VMs that are off have allow new connections mode set to True
+                                if($SessionHostInfo.AllowNewSession -eq $false){ 
 								Check-ForAllowNewConnections -TenantName $TenantName -HostPoolName $HostpoolName -SessionHostName $SessionHostName
+                                }
 							}
 						}
 
