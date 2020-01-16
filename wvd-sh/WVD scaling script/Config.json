@@ -8,16 +8,6 @@
 					"Value": "00000000-0000-0000-0000-000000000000"
 				},
 				{
-					"_Comments": "Stored Credentials of Azure Service Principal GUID or Username",
-					"Name": "AADApplicationId",
-					"Value": ""
-				},
-				{
-					"_Comments": "use AADServicePrincipalSecret filed for testing only, set via New-StoredCredential",
-					"Name": "AADServicePrincipalSecret",
-					"Value": ""
-				},
-				{
 					"_Comments": "Subscription Id of the Azure",
 					"Name": "currentAzureSubscriptionId",
 					"Value": ""
@@ -40,7 +30,7 @@
 				{
 					"_Comments": "Hostpool session Load Balancing Type in Peak Hours",
 					"Name": "peakLoadBalancingType",
-					"Value": "DepthFirst"
+					"Value": "BreadthFirst"
 				},
 				{
 					"_Comments": "Name of the maintenance Tag",
