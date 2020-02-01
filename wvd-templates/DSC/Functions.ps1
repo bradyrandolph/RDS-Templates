@@ -1,3 +1,5 @@
+#TODO update zips!!!!!!
+
 <#
 
 .SYNOPSIS
@@ -241,6 +243,11 @@ function isRdshServer {
     return $rdshIsServer
 }
 
+
+<#
+.Description
+Call this function using dot source notation like ". AuthenticateRdsAccount" because the Add-RdsAccount function this calls creates variables using the AllScope option that other WVD poweshell module functions like Set-RdsContext require. Note that this creates a variable named "$authentication" that will overwrite any existing variable with that name in the scope this is dot sourced to.
+#>
 function AuthenticateRdsAccount {
     param(
         [Parameter(mandatory = $true)]
@@ -255,7 +262,7 @@ function AuthenticateRdsAccount {
         [AllowEmptyString()]
         [string]$TenantId = ""
     )
-    
+
     if ($ServicePrincipal) {
         Write-Log -Message "Authenticating using service principal $($Credential.username) and Tenant id: $TenantId "
     }
@@ -264,7 +271,7 @@ function AuthenticateRdsAccount {
         $PSBoundParameters.Remove('TenantId')
         Write-Log -Message "Authenticating using user $($Credential.username)"
     }
-
+    
     $authentication = $null
     try {
         $authentication = Add-RdsAccount @PSBoundParameters
@@ -273,40 +280,81 @@ function AuthenticateRdsAccount {
         }
     }
     catch {
-        $errMsg = "Windows Virtual Desktop Authentication Failed, Error:`n$($_ | Out-String)"
-        Write-Log -Error "$errMsg"
-        throw "$errMsg"
+        #This creates a new script scope so that these variables aren't included in this function scope since this function is being called using dot source notation.
+        & {
+            Set-StrictMode -Version Latest
+            
+            $innerExAsStr = ""
+            $numInnerExceptions = 0
+            if($_.Exception -is [System.AggregateException] -and $_.Exception.InnerExceptions)
+            {
+                $numInnerExceptions = $_.Exception.InnerExceptions.Count
+                foreach ($innerEx in $_.Exception.InnerExceptions)
+                {
+                    if($innerExAsStr.Length -gt 0)
+                    {
+                        $innerExAsStr += "`n"
+                    } 
+                    $innerExAsStr += $innerEx
+                }
+            }
+            
+            $errMsg = "Error authenticating Windows Virtual Desktop account, ServicePrincipal=" + $ServicePrincipal
+            $errMsg += " Error Details:`n$($_ | Out-String)"
+            if($innerExAsStr.Length -gt 0)
+            {
+                $errMsg += " Inner Errors (there are " + $numInnerExceptions +"): `n$($innerExAsStr | Out-String)"
+            } 
+
+            Write-Log -Error $errMsg
+            throw [System.Exception]::new($errMsg, $PSItem.Exception)
+        }
+
     }
-    Write-Log -Message "Windows Virtual Desktop Authentication successfully Done. Result:`n$($authentication | Out-String)"
+    Write-Log -Message "Windows Virtual Desktop account authentication successful. Result:`n$($authentication | Out-String)"
 }
 
-function SetTenantContextAndValidate {
+function SetTenantGroupContextAndValidate {
     param(
         [Parameter(mandatory = $true)]
-        [string]$definedTenantGroupName,
+        [string]$TenantGroupName,
 
         [Parameter(mandatory = $true)]
         [string]$TenantName
     )
-    #//todo refactor
-    #//todo try catch ?
+
+    Set-StrictMode -Version Latest
+
     # Set context to the appropriate tenant group
     $currentTenantGroupName = (Get-RdsContext).TenantGroupName
-    if ($definedTenantGroupName -ne $currentTenantGroupName) {
-        Write-Log -Message "Running switching to the $definedTenantGroupName context"
-        Set-RdsContext -TenantGroupName $definedTenantGroupName
-    }
-    try {
-        $tenants = Get-RdsTenant -Name "$TenantName"
-        if (!$tenants) {
-            Write-Log "No tenants exist or you do not have proper access."
-            #//todo throw ?
+    if ($TenantGroupName -ne $currentTenantGroupName) {
+        Write-Log -Message "Running switching to the $TenantGroupName context"
+
+        try {
+            #As of Microsoft.RDInfra.RDPowerShell version 1.0.1534.2001 this throws a System.NullReferenceException when the TenantGroupName doesn't exist.
+            Set-RdsContext -TenantGroupName $TenantGroupName
         }
-    }
-    catch {
-        #//todo refactor msg ?
-        Write-Log -Message $_
-        throw $_
+        catch {
+            $errMsg ="Error setting RdsContext using tenant group ""$TenantGroupName"", this may be caused by the tenant group not existing or the user not having access to the tenant group. Error Details: $($PSItem | Out-String)"
+            Write-Log -Error $errMsg
+            throw [System.Exception]::new($errMsg, $PSItem.Exception)
+        }
+
+        $tenants = $null
+        try {
+            $tenants = Get-RdsTenant -Name $TenantName
+        }
+        catch {
+            $errMsg = "Error getting the tenant with name ""$TenantName"", this may be caused by the tenant not existing or the account doesn't have access to the tenant. Error Details: $($PSItem | Out-String)"
+            Write-Log -Error $errMsg
+            throw [System.Exception]::new($errMsg, $PSItem.Exception)
+        }
+
+        if (!$tenants) {
+            $errMsg = "No tenant with name ""$TenantName"" exists or the account doesn't have access to it." 
+            Write-Log -Error $errMsg
+            throw $errMsg
+        }
     }
 }
 
