@@ -57,7 +57,6 @@ ImportRDPSMod -Source $RDPSModSource -ArtifactsPath $ScriptPath
 
 SetTenantGroupContextAndValidate -TenantGroupName $definedTenantGroupName -TenantName $TenantName
 
-#TODO centralize but note that All but Script-CreateHostPool.ps1 and Script-TestHostPoolExists.ps1 throw when Get-RdsHostPool return value evaluates to false. All of them call Get-RdsHostPool with -ErrorAction SilentlyContinue
 # Checking if host pool exists
 Write-Log -Message "Checking Hostpool exists inside the Tenant"
 $HostPool = Get-RdsHostPool -TenantName "$TenantName" -Name "$HostPoolName" -ErrorAction SilentlyContinue

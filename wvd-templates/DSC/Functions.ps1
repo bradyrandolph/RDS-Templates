@@ -1,5 +1,3 @@
-#TODO update zips!!!!!!
-
 <#
 
 .SYNOPSIS
