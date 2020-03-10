@@ -630,6 +630,36 @@
                         "tenantAdminPassword": "[parameters('tenantAdminPassword')]"
                     }
                 }
+            }   
+        },
+        {
+            "apiVersion": "2018-10-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('rdshPrefix'), copyindex(1), '/deploy-apps')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('rdshPrefix'), '0/extensions/joindomain')]"
+            ],
+            "tags": {
+                "displayName": "deploy-apps"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "https://wvddscconfigs.blob.core.windows.net/dscconfigs/VM-CustomExtension.ps1"
+                    ],
+                    "timestamp":123456789
+                },
+                "protectedSettings": {
+                    "commandToExecute": "powershell.exe VM-CustomExtension.ps1",
+                    "storageAccountName": "https://wvddscconfigs.blob.core.windows.net",
+                    "storageAccountKey": "?sp=rl&st=2020-03-10T17:33:17Z&se=2020-03-11T17:33:17Z&sv=2019-02-02&sr=c&sig=YG4c5%2Bzkxbh%2BF5zlHbjPOKf3CO7H3bvQC8KziDFDjP0%3D",
+                    "managedIdentity" : {}
+                }
             }
         }
     ],
