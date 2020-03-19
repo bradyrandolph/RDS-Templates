@@ -545,7 +545,7 @@
             "name": "[concat(variables('rdshPrefix'), copyindex(), '/deployapps')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('rdshPrefix'), copyindex())]"
+                "[concat(variables('rdshPrefix'), copyindex(), '/joindomain')]"
             ],
             "copy": {
                 "name": "rdsh-domain-join-loop",
