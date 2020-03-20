@@ -545,10 +545,10 @@
             "name": "[concat(variables('rdshPrefix'), copyindex(), '/deployapps')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat(variables('rdshPrefix'), copyindex(), '/joindomain')]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('rdshPrefix'), copyindex(), '/extensions/joindomain')]"
             ],
             "copy": {
-                "name": "rdsh-domain-join-loop",
+                "name": "deployapps",
                 "count": "[parameters('rdshNumberOfInstances')]"
             },
             "tags": {
@@ -563,12 +563,10 @@
                     "fileUris": [
                         "https://wvddscconfigs.blob.core.windows.net/dscconfigs/VM-CustomExtension.ps1"
                     ],
-                    "commandToExecute": "powershell.exe VM-CustomExtension.ps1",
+                    "commandToExecute": "powershell.exe ./VM-CustomExtension.ps1",
                     "timestamp":123456789
                 },
                 "protectedSettings": {
-                    "storageAccountName": "https://wvddscconfigs.blob.core.windows.net",
-                    "storageAccountKey": "wx8GyVt/6LDOIKP9/t/pddfGONpBjj+1FlM9rLPdtt58o7A2rvidd1H/LJuk4VZI3FQ4WmKEpjdhprKrxlaPCQ=="
                 }
             }
         },
@@ -578,7 +576,7 @@
             "name": "[concat(variables('rdshPrefix'), '0/dscextension')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('rdshPrefix'), '0/extensions/joindomain')]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('rdshPrefix'), copyindex(), '/extensions/deployapps')]"
             ],
             "copy": {
                 "name": "first-rdsh-dsc",
